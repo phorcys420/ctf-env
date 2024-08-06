@@ -271,10 +271,15 @@ resource "coder_metadata" "home" {
   }
 }
 
-resource "docker_image" "ctf_image" {
-  name = "ghcr.io/phorcys420/ctf-env:latest"
+data "docker_registry_image" "ctf_image" {
+  count = data.coder_parameter.docker_image.value == "javascript" ? 1 : 0
 
-  keep_locally = true
+  name = "ghcr.io/phorcys420/ctf-env/ctf:latest"
+}
+
+resource "docker_image" "ctf_image" {
+  name          = data.docker_registry_image.ctf_image.name
+  pull_triggers = [data.docker_registry_image.ctf_image.sha256_digest]
 }
 
 resource "coder_metadata" "ctf_image" {
@@ -292,6 +297,9 @@ resource "docker_container" "workspace" {
   count = data.coder_workspace.me.start_count
 
   image = docker_image.ctf_image.image_id
+
+  # set runtime to use Sysbox to allow Docker in Docker
+  runtime = "sysbox-runc"
 
   name     = "coder-${local.user_name}-${local.workspace_name}"
   hostname = local.workspace_name
