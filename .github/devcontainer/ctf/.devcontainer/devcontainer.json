@@ -1,0 +1,16 @@
+{
+    "image": "ghcr.io/uwu/basic-env/base:latest",
+
+    "features": {
+        "ghcr.io/devcontainers/features/python:1": {},
+        "ghcr.io/devcontainers/features/node:1": {
+            "nodeGypDependencies": false,
+            "installYarnUsingApt": false
+        },
+
+        "ghcr.io/phorcys420/devcontainer-features/burp-suite:latest": {},
+
+        "ghcr.io/phorcys420/devcontainer-features/ghidra:latest": {},
+        "ghcr.io/phorcys420/devcontainer-features/cutter:latest": {}
+    }
+}

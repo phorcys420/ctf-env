@@ -17,12 +17,6 @@ locals {
 
   workspace_name = lower(data.coder_workspace.me.name)
   user_name = lower(data.coder_workspace.me.owner)
-
-  images = {
-    javascript = docker_image.javascript_image
-    dart = docker_image.dart_image
-    java = docker_image.java_image
-  }
 }
 
 provider "docker" {
@@ -90,38 +84,6 @@ then
   supervisorctl start vnc:*
 fi
 EOT
-}
-
-data "coder_parameter" "docker_image" {
-  name        = "Docker Image"
-  description = "Which Docker image do you want to use?"
-
-  type    = "string"
-  default = "javascript"
-
-  order = 1
-
-  mutable = true
-
-  option {
-    name  = "JavaScript"
-    value = "javascript"
-  }
-
-  option {
-    name  = "Dart"
-    value = "dart"
-  }
-
-  option {
-    name  = "Java"
-    value = "java"
-  }
-
-  option {
-    name  = "Base"
-    value = "base"
-  }
 }
 
 data "coder_parameter" "shell" {
@@ -309,75 +271,27 @@ resource "coder_metadata" "home" {
   }
 }
 
-resource "docker_image" "javascript_image" {
-  count = data.coder_parameter.docker_image.value == "javascript" ? 1 : 0
-
-  name = "ghcr.io/uwu/basic-env/javascript:latest"
+resource "docker_image" "ctf_image" {
+  name = "ghcr.io/phorcys420/ctf-env:latest"
 
   keep_locally = true
 }
 
-resource "docker_image" "dart_image" {
-  count = data.coder_parameter.docker_image.value == "dart" ? 1 : 0
-
-  name = "ghcr.io/uwu/basic-env/dart:latest"
-
-  keep_locally = true
-}
-
-resource "docker_image" "java_image" {
-  count = data.coder_parameter.docker_image.value == "java" ? 1 : 0
-
-  name = "ghcr.io/uwu/basic-env/java:latest"
-
-  keep_locally = true
-}
-
-resource "coder_metadata" "javascript_image" {
-  count = data.coder_parameter.docker_image.value == "javascript" ? 1 : 0
-
-  resource_id = docker_image.javascript_image[0].id
+resource "coder_metadata" "ctf_image" {
+  resource_id = docker_image.ctf_image.id
 
   hide = true
 
   item {
     key   = "description"
-    value = "JavaScript container image"
-  }
-}
-
-resource "coder_metadata" "dart_image" {
-  count = data.coder_parameter.docker_image.value == "dart" ? 1 : 0
-
-  resource_id = docker_image.dart_image[0].id
-
-  hide = true
-
-  item {
-    key   = "description"
-    value = "Dart container image"
-  }
-}
-
-resource "coder_metadata" "java_image" {
-  count = data.coder_parameter.docker_image.value == "java" ? 1 : 0
-
-  resource_id = docker_image.java_image[0].id
-
-  hide = true
-
-  item {
-    key   = "description"
-    value = "Java container image"
+    value = "Docker image"
   }
 }
 
 resource "docker_container" "workspace" {
   count = data.coder_workspace.me.start_count
 
-  # we need to define a relation table in locals because we can't simply access resources like this: docker_image["javascript_image"]
-  # we need to access [0] because we define a count in the docker_image's definition
-  image = local.images[data.coder_parameter.docker_image.value][0].image_id
+  image = docker_image.ctf_image.image_id
 
   name     = "coder-${local.user_name}-${local.workspace_name}"
   hostname = local.workspace_name

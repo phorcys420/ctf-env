@@ -1,9 +1,0 @@
-{
-  "name": "uwu/basic-env - Dart",
-
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
-
-  "remoteUser": "coder"
-}
